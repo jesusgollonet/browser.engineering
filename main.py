@@ -24,8 +24,17 @@ class URL:
             ctx = ssl.create_default_context()
             s = ctx.wrap_socket(s, server_hostname=self.host)
 
-        request = f"GET {self.path} HTTP/1.0\r\n"
-        request += f"Host: {self.host}\r\n"
+        headers = {
+            "Host": self.host,
+            "Connection": "close",
+            "User-Agent": "jgb",
+        }
+
+        request = f"GET {self.path} HTTP/1.1\r\n"
+
+        for header, value in headers.items():
+            request += f"{header}: {value}\r\n"
+
         request += "\r\n"
         s.send(request.encode("utf8"))
         response = s.makefile("r", encoding="utf8", newline="\r\n")
@@ -56,7 +65,6 @@ def load(url):
 
 
 def show(body):
-    print(body)
     in_tag = False
     for c in body:
         if c == "<":

@@ -1,0 +1,1 @@
+map ,r :w\|!python3 %<CR>

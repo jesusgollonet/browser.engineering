@@ -1,1 +1,3 @@
-map ,r :w\|!python3 main.py file:///test/hello.html<CR>
+map ,u :w\|!python3 main.py https://example.org/index.html<CR>
+map ,d :w\|!python3 main.py "data:text/html;charset=US-ASCII;hello,"<CR>
+map ,f :w\|!python3 main.py file:///Users/jgb/Learn/recurse.com/browser.engineering/dummy.txt<CR>

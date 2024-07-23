@@ -4,12 +4,15 @@ import ssl
 
 class URL:
     def __init__(self, url):
-        # Steps
-        # detect pre scheme
+        self.pre_scheme = None
+
         if url.startswith("data:"):
-            self.scheme = "data"
+            self.pre_scheme = "data"
             self.path = url.split(":", 1)[1]
             return
+        elif url.startswith("view-source:"):
+            self.pre_scheme = "view-source"
+            url = url.split(":", 1)[1]
 
         self.scheme, url = url.split("://", 1)
 
@@ -26,12 +29,15 @@ class URL:
             self.port = 80
 
     def request(self):
-        if self.scheme == "file":
-            return self.__file_request()
-        elif self.scheme == "data":
+        if self.pre_scheme == "view-source":
+            return self.__http_request()
+        elif self.pre_scheme == "data":
             return self.__data_request()
         else:
-            return self.__http_request()
+            if self.scheme == "file":
+                return self.__file_request()
+            else:
+                return self.__http_request()
 
     def __data_request(self):
         path_parts = self.path.split(";", -1)
@@ -84,6 +90,9 @@ class URL:
         assert "content-encoding" not in response_headers
         body = response.read()
         s.close()
+        # TODO this is icky. we should probably extract parts of http_request into a separate function and treat teh body outside
+        if self.pre_scheme == "view-source":
+            return body.replace("<", "&lt;").replace(">", "&gt;")
         return body
 
 

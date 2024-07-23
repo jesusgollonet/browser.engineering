@@ -20,16 +20,16 @@ class URL:
 
     def request(self):
         if self.scheme == "file":
-            return self._file_request()
+            return self.__file_request()
         else:
-            return self._http_request()
+            return self.__http_request()
 
-    def _file_request(self):
+    def __file_request(self):
         with open(self.path, encoding="utf-8") as f:
             read_data = f.read()
         return read_data
 
-    def _http_request(self):
+    def __http_request(self):
         s = socket.socket(
             family=socket.AF_INET, type=socket.SOCK_STREAM, proto=socket.IPPROTO_TCP
         )

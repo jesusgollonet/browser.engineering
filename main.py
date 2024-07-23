@@ -4,6 +4,13 @@ import ssl
 
 class URL:
     def __init__(self, url):
+        # Steps
+        # detect pre scheme
+        if url.startswith("data:"):
+            self.scheme = "data"
+            self.path = url.split(":", 1)[1]
+            return
+
         self.scheme, url = url.split("://", 1)
 
         if "/" not in url:
@@ -21,8 +28,19 @@ class URL:
     def request(self):
         if self.scheme == "file":
             return self.__file_request()
+        elif self.scheme == "data":
+            return self.__data_request()
         else:
             return self.__http_request()
+
+    def __data_request(self):
+        path_parts = self.path.split(";", -1)
+        body = path_parts[-1]
+        # TODO handle media type
+        if len(path_parts) > 1:
+            media_type = path_parts[:-1]
+
+        return body
 
     def __file_request(self):
         with open(self.path, encoding="utf-8") as f:

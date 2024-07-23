@@ -94,13 +94,17 @@ def load(url):
 
 def show(body):
     in_tag = False
+    output = ""
     for c in body:
         if c == "<":
             in_tag = True
         elif c == ">":
             in_tag = False
         elif not in_tag:
-            print(c, end="")
+            output += c
+
+    output = output.replace("&lt;", "<").replace("&gt;", ">")
+    print(output)
 
 
 if __name__ == "__main__":

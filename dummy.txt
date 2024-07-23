@@ -1,3 +1,5 @@
 Hello
 HTML
 not
+<test>holla</test>
+&lt;test&gt;holla&lt;/test&gt;

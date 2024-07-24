@@ -4,6 +4,7 @@ import ssl
 
 class URL:
     def __init__(self, url):
+        self.s = None
         self.pre_scheme = None
 
         if url.startswith("data:"):
@@ -54,17 +55,18 @@ class URL:
         return read_data
 
     def __http_request(self):
-        s = socket.socket(
-            family=socket.AF_INET, type=socket.SOCK_STREAM, proto=socket.IPPROTO_TCP
-        )
-        s.connect((self.host, self.port))
+        if not self.s:
+            self.s = socket.socket(
+                family=socket.AF_INET, type=socket.SOCK_STREAM, proto=socket.IPPROTO_TCP
+            )
+        self.s.connect((self.host, self.port))
         if self.scheme == "https":
             ctx = ssl.create_default_context()
-            s = ctx.wrap_socket(s, server_hostname=self.host)
+            self.s = ctx.wrap_socket(self.s, server_hostname=self.host)
 
         headers = {
             "Host": self.host,
-            "Connection": "close",
+            # "Connection": "close",
             "User-Agent": "jgb",
         }
 
@@ -74,8 +76,8 @@ class URL:
             request += f"{header}: {value}\r\n"
 
         request += "\r\n"
-        s.send(request.encode("utf8"))
-        response = s.makefile("r", encoding="utf8", newline="\r\n")
+        self.s.send(request.encode("utf8"))
+        response = self.s.makefile("r", encoding="utf8", newline="\r\n")
         statusline = response.readline()
         version, status, explanation = statusline.split(" ", 2)
         response_headers = {}
@@ -86,10 +88,11 @@ class URL:
             header, value = line.split(":", 1)
             response_headers[header.casefold()] = value.strip()
         # we won't handle these
+        print(response_headers["content-length"])
         assert "transfer-encoding" not in response_headers
         assert "content-encoding" not in response_headers
-        body = response.read()
-        s.close()
+        body = response.read(int(response_headers["content-length"]))
+        # s.close()
         # TODO this is icky. we should probably extract parts of http_request into a separate function and treat teh body outside
         if self.pre_scheme == "view-source":
             return body.replace("<", "&lt;").replace(">", "&gt;")
@@ -118,6 +121,7 @@ def show(body):
 
 if __name__ == "__main__":
     import sys
+    import time
 
     url = sys.argv[1] if len(sys.argv) > 1 else None
     if url:

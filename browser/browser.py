@@ -1,4 +1,4 @@
-from browser.url import URL
+from browser.url import URL, Net
 
 
 def load(url_str):
@@ -6,8 +6,10 @@ def load(url_str):
     if url_str.startswith("view-source:"):
         url_str = url_str.split(":", 1)[1]
         view_source = True
+
     url = URL(url_str)
-    body = url.request()
+    net = Net(url)
+    body = net.request()
     show(body, view_source)
 
 

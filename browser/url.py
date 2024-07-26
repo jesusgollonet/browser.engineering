@@ -31,16 +31,21 @@ class URL:
             else:
                 self.port = 80
 
+
+class Net:
+    def __init__(self, url):
+        self.url = url
+
     def request(self):
-        if self.scheme == "data":
+        if self.url.scheme == "data":
             return self.__data_request()
-        elif self.scheme == "file":
+        elif self.url.scheme == "file":
             return self.__file_request()
         else:
             return self.__http_request()
 
     def __data_request(self):
-        path_parts = self.path.split(";", -1)
+        path_parts = self.url.path.split(";", -1)
         body = path_parts[-1]
         # TODO handle media type
         if len(path_parts) > 1:
@@ -49,34 +54,34 @@ class URL:
         return body
 
     def __file_request(self):
-        with open(self.path, encoding="utf-8") as f:
+        with open(self.url.path, encoding="utf-8") as f:
             read_data = f.read()
         return read_data
 
     def __http_request(self):
-        if not self.s:
-            self.s = socket.socket(
+        if not self.url.s:
+            self.url.s = socket.socket(
                 family=socket.AF_INET, type=socket.SOCK_STREAM, proto=socket.IPPROTO_TCP
             )
-        self.s.connect((self.host, self.port))
-        if self.scheme == "https":
+        self.url.s.connect((self.url.host, self.url.port))
+        if self.url.scheme == "https":
             ctx = ssl.create_default_context()
-            self.s = ctx.wrap_socket(self.s, server_hostname=self.host)
+            self.url.s = ctx.wrap_socket(self.url.s, server_hostname=self.url.host)
 
         headers = {
-            "Host": self.host,
+            "Host": self.url.host,
             # "Connection": "close",
             "User-Agent": "jgb",
         }
 
-        request = f"GET {self.path} HTTP/1.1\r\n"
+        request = f"GET {self.url.path} HTTP/1.1\r\n"
 
         for header, value in headers.items():
             request += f"{header}: {value}\r\n"
 
         request += "\r\n"
-        self.s.send(request.encode("utf8"))
-        response = self.s.makefile("r", encoding="utf8", newline="\r\n")
+        self.url.s.send(request.encode("utf8"))
+        response = self.url.s.makefile("r", encoding="utf8", newline="\r\n")
         statusline = response.readline()
         version, status, explanation = statusline.split(" ", 2)
         response_headers = {}

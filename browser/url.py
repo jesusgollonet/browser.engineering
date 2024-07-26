@@ -17,9 +17,6 @@ class URL:
             self.pre_scheme = "data"
             self.path = url.split(":", 1)[1]
             return
-        elif url.startswith("view-source:"):
-            self.pre_scheme = "view-source"
-            url = url.split(":", 1)[1]
 
         self.scheme, url = url.split("://", 1)
 
@@ -41,9 +38,7 @@ class URL:
                 self.port = 80
 
     def request(self):
-        if self.pre_scheme == "view-source":
-            return self.__http_request()
-        elif self.pre_scheme == "data":
+        if self.pre_scheme == "data":
             return self.__data_request()
         else:
             if self.scheme == "file":
@@ -104,6 +99,4 @@ class URL:
         body = response.read(int(response_headers["content-length"]))
         # s.close()
         # TODO this is icky. we should probably extract parts of http_request into a separate function and treat the body outside
-        if self.pre_scheme == "view-source":
-            return body.replace("<", "&lt;").replace(">", "&gt;")
         return body

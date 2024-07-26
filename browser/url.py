@@ -1,20 +1,14 @@
 import socket
 import ssl
 
-# a URL takes a string and returns something that can be used to make a request
-# the request method is not defined here, but in the URL class
-# the URL class is responsible for making the request
-# the URL class is responsible for handling the response
-
 
 class URL:
     def __init__(self, url):
         self.s = None
-        self.pre_scheme = None
         self.port = None
 
         if url.startswith("data:"):
-            self.pre_scheme = "data"
+            self.scheme = "data"
             self.path = url.split(":", 1)[1]
             return
 
@@ -38,13 +32,12 @@ class URL:
                 self.port = 80
 
     def request(self):
-        if self.pre_scheme == "data":
+        if self.scheme == "data":
             return self.__data_request()
+        elif self.scheme == "file":
+            return self.__file_request()
         else:
-            if self.scheme == "file":
-                return self.__file_request()
-            else:
-                return self.__http_request()
+            return self.__http_request()
 
     def __data_request(self):
         path_parts = self.path.split(";", -1)

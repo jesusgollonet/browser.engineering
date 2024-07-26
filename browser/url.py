@@ -99,12 +99,11 @@ class URL:
             header, value = line.split(":", 1)
             response_headers[header.casefold()] = value.strip()
         # we won't handle these
-        print(response_headers["content-length"])
         assert "transfer-encoding" not in response_headers
         assert "content-encoding" not in response_headers
         body = response.read(int(response_headers["content-length"]))
         # s.close()
-        # TODO this is icky. we should probably extract parts of http_request into a separate function and treat teh body outside
+        # TODO this is icky. we should probably extract parts of http_request into a separate function and treat the body outside
         if self.pre_scheme == "view-source":
             return body.replace("<", "&lt;").replace(">", "&gt;")
         return body

@@ -11,6 +11,7 @@ class URL:
     def __init__(self, url):
         self.s = None
         self.pre_scheme = None
+        self.port = None
 
         if url.startswith("data:"):
             self.pre_scheme = "data"
@@ -26,13 +27,18 @@ class URL:
             url += "/"
 
         self.host, url = url.split("/", 1)
+        if ":" in self.host:
+            self.host, port = self.host.split(":", 1)
+            self.port = int(port)
+
         self.path = "/" + url
 
         assert self.scheme in ["http", "https", "file"]
-        if self.scheme == "https":
-            self.port = 443
-        else:
-            self.port = 80
+        if not self.port:
+            if self.scheme == "https":
+                self.port = 443
+            else:
+                self.port = 80
 
     def request(self):
         if self.pre_scheme == "view-source":

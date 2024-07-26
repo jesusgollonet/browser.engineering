@@ -25,3 +25,10 @@ def test_port():
     assert url.port == 80
     url = URL("https://example.com")
     assert url.port == 443
+
+
+def test_custom_port():
+    url = URL("http://example.com:8080")
+    print(url.host)
+    assert url.host == "example.com"
+    assert url.port == 8080

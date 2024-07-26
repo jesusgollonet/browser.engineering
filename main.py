@@ -1,4 +1,5 @@
-from browser.browser import load, URL
+from browser.browser import load
+from browser.url import URL
 
 if __name__ == "__main__":
     import sys

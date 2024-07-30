@@ -1,5 +1,43 @@
 import socket
 import ssl
+from dataclasses import dataclass
+
+
+@dataclass
+class URL_new:
+    scheme: str
+    host: str | None
+    port: int | None
+    path: str
+
+    @staticmethod
+    def parse(url_str):
+        # special case for data
+        if url_str.startswith("data:"):
+            scheme = "data"
+            path = url_str.split(":", 1)[1]
+            host = None
+            port = None
+            return URL_new(scheme, host, port, path)
+
+        scheme, rest = url_str.split("://", 1)
+
+        if "/" not in rest:
+            rest += "/"
+
+        print(rest)
+        host, rest = rest.split("/", 1)
+        if ":" in host:
+            host, port = host.split(":", 1)
+            port = int(port)
+        elif scheme == "https":
+            port = 443
+        else:
+            port = 80
+
+        path = "/" + rest
+
+        return URL_new(scheme, host, port, path)
 
 
 class URL:

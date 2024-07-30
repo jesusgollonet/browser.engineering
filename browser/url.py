@@ -1,40 +1,49 @@
 import socket
 import ssl
+from dataclasses import dataclass
 
 
+@dataclass
 class URL:
-    def __init__(self, url):
-        self.s = None
-        self.port = None
+    scheme: str
+    host: str | None
+    port: int | None
+    path: str
 
-        if url.startswith("data:"):
-            self.scheme = "data"
-            self.path = url.split(":", 1)[1]
-            return
+    @staticmethod
+    def parse(url_str):
+        # special case for data
+        if url_str.startswith("data:"):
+            scheme = "data"
+            path = url_str.split(":", 1)[1]
+            host = None
+            port = None
+            return URL(scheme, host, port, path)
 
-        self.scheme, url = url.split("://", 1)
+        scheme, rest = url_str.split("://", 1)
 
-        if "/" not in url:
-            url += "/"
+        if "/" not in rest:
+            rest += "/"
 
-        self.host, url = url.split("/", 1)
-        if ":" in self.host:
-            self.host, port = self.host.split(":", 1)
-            self.port = int(port)
+        print(rest)
+        host, rest = rest.split("/", 1)
+        if ":" in host:
+            host, port = host.split(":", 1)
+            port = int(port)
+        elif scheme == "https":
+            port = 443
+        else:
+            port = 80
 
-        self.path = "/" + url
+        path = "/" + rest
 
-        assert self.scheme in ["http", "https", "file"]
-        if not self.port:
-            if self.scheme == "https":
-                self.port = 443
-            else:
-                self.port = 80
+        return URL(scheme, host, port, path)
 
 
 class Net:
     def __init__(self, url):
         self.url = url
+        self.s = None
 
     def request(self):
         if self.url.scheme == "data":
@@ -59,14 +68,14 @@ class Net:
         return read_data
 
     def __http_request(self):
-        if not self.url.s:
-            self.url.s = socket.socket(
+        if not self.s:
+            self.s = socket.socket(
                 family=socket.AF_INET, type=socket.SOCK_STREAM, proto=socket.IPPROTO_TCP
             )
-        self.url.s.connect((self.url.host, self.url.port))
+        self.s.connect((self.url.host, self.url.port))
         if self.url.scheme == "https":
             ctx = ssl.create_default_context()
-            self.url.s = ctx.wrap_socket(self.url.s, server_hostname=self.url.host)
+            self.s = ctx.wrap_socket(self.s, server_hostname=self.url.host)
 
         headers = {
             "Host": self.url.host,
@@ -80,8 +89,8 @@ class Net:
             request += f"{header}: {value}\r\n"
 
         request += "\r\n"
-        self.url.s.send(request.encode("utf8"))
-        response = self.url.s.makefile("r", encoding="utf8", newline="\r\n")
+        self.s.send(request.encode("utf8"))
+        response = self.s.makefile("r", encoding="utf8", newline="\r\n")
         statusline = response.readline()
         version, status, explanation = statusline.split(" ", 2)
         response_headers = {}

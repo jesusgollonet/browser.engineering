@@ -7,7 +7,7 @@ def load(url_str):
         url_str = url_str.split(":", 1)[1]
         view_source = True
 
-    url = URL(url_str)
+    url = URL.parse(url_str)
     net = Net(url)
     body = net.request()
     show(body, view_source)

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class URL_new:
+class URL:
     scheme: str
     host: str | None
     port: int | None
@@ -18,7 +18,7 @@ class URL_new:
             path = url_str.split(":", 1)[1]
             host = None
             port = None
-            return URL_new(scheme, host, port, path)
+            return URL(scheme, host, port, path)
 
         scheme, rest = url_str.split("://", 1)
 
@@ -37,37 +37,7 @@ class URL_new:
 
         path = "/" + rest
 
-        return URL_new(scheme, host, port, path)
-
-
-class URL:
-    def __init__(self, url):
-        self.s = None
-        self.port = None
-
-        if url.startswith("data:"):
-            self.scheme = "data"
-            self.path = url.split(":", 1)[1]
-            return
-
-        self.scheme, url = url.split("://", 1)
-
-        if "/" not in url:
-            url += "/"
-
-        self.host, url = url.split("/", 1)
-        if ":" in self.host:
-            self.host, port = self.host.split(":", 1)
-            self.port = int(port)
-
-        self.path = "/" + url
-
-        assert self.scheme in ["http", "https", "file"]
-        if not self.port:
-            if self.scheme == "https":
-                self.port = 443
-            else:
-                self.port = 80
+        return URL(scheme, host, port, path)
 
 
 class Net:

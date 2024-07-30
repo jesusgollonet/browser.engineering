@@ -73,6 +73,7 @@ class URL:
 class Net:
     def __init__(self, url):
         self.url = url
+        self.s = None
 
     def request(self):
         if self.url.scheme == "data":
@@ -97,14 +98,14 @@ class Net:
         return read_data
 
     def __http_request(self):
-        if not self.url.s:
-            self.url.s = socket.socket(
+        if not self.s:
+            self.s = socket.socket(
                 family=socket.AF_INET, type=socket.SOCK_STREAM, proto=socket.IPPROTO_TCP
             )
-        self.url.s.connect((self.url.host, self.url.port))
+        self.s.connect((self.url.host, self.url.port))
         if self.url.scheme == "https":
             ctx = ssl.create_default_context()
-            self.url.s = ctx.wrap_socket(self.url.s, server_hostname=self.url.host)
+            self.s = ctx.wrap_socket(self.s, server_hostname=self.url.host)
 
         headers = {
             "Host": self.url.host,
@@ -118,8 +119,8 @@ class Net:
             request += f"{header}: {value}\r\n"
 
         request += "\r\n"
-        self.url.s.send(request.encode("utf8"))
-        response = self.url.s.makefile("r", encoding="utf8", newline="\r\n")
+        self.s.send(request.encode("utf8"))
+        response = self.s.makefile("r", encoding="utf8", newline="\r\n")
         statusline = response.readline()
         version, status, explanation = statusline.split(" ", 2)
         response_headers = {}

@@ -12,6 +12,8 @@ class URL:
 
     @staticmethod
     def parse(url_str):
+        if url_str.startswith("view-source:"):
+            url_str = url_str.split(":", 1)[1]
         # special case for data
         if url_str.startswith("data:"):
             scheme = "data"
@@ -25,7 +27,6 @@ class URL:
         if "/" not in rest:
             rest += "/"
 
-        print(rest)
         host, rest = rest.split("/", 1)
         if ":" in host:
             host, port = host.split(":", 1)

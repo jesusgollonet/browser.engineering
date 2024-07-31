@@ -1,5 +1,6 @@
 from browser.url import URL, RequestHeaders, Request, Net
-from browser.browser import load, parse
+from browser.browser import load, parse, strip_view_source
+
 
 """
 1-1 HTTP/1.1. Along with Host, send the Connection header in the request
@@ -100,7 +101,24 @@ implemented Exercise 1-4.
 
 
 def test_ch1_ex15_view_source():
+    # view-source should be ignored by the URL parser
     url = URL.parse("view-source:http://example.org")
-    net = Net(url)
-    response = net.request(None)
-    assert "<html>" in response
+    assert url.scheme == "http"
+    assert url.host == "example.org"
+    assert url.path == "/"
+
+    # browser should print the entire HTML file as text
+    parsed_body = parse(
+        "<html><body><h1>Hello world!</h1></body></html>", view_source=True
+    )
+    assert "<html><body><h1>Hello world!</h1></body></html>" in parsed_body
+
+    url_str, view_source = strip_view_source("view-source:http://example.org")
+    assert url_str == "http://example.org"
+    assert view_source
+
+    url_str, view_source = strip_view_source("http://example.org")
+    assert url_str == "http://example.org"
+    assert view_source is False
+
+    # view-source should be removed from the URL by load

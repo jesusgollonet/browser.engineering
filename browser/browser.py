@@ -2,10 +2,7 @@ from browser.url import URL, Net, RequestHeaders
 
 
 def load(url_str):
-    view_source = False
-    if url_str.startswith("view-source:"):
-        url_str = url_str.split(":", 1)[1]
-        view_source = True
+    url_str, view_source = strip_view_source(url_str)
 
     url = URL.parse(url_str)
     headers = RequestHeaders(headers={})
@@ -15,6 +12,12 @@ def load(url_str):
     raw_body = net.request(headers=headers)
     body = parse(raw_body, view_source)
     print(body)
+
+
+def strip_view_source(url_str):
+    if url_str.startswith("view-source:"):
+        return url_str.split(":", 1)[1], True
+    return url_str, False
 
 
 def parse(body, view_source=False):

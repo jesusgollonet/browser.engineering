@@ -78,6 +78,23 @@ class RequestHeaders:
         return f"RequestHeaders({self.headers})"
 
 
+@dataclass
+class Request:
+    method: str
+    uri: str
+    version: str
+    headers: RequestHeaders
+
+    def to_string(self):
+        request_str = f"{self.method} {self.uri.path} { self.version }\r\n"
+
+        for header, value in self.headers.items():
+            request_str += f"{header}: {value}\r\n"
+
+        request_str += "\r\n"
+        return request_str
+
+
 class Net:
     def __init__(self, url):
         self.url = url
@@ -116,14 +133,9 @@ class Net:
             self.s = ctx.wrap_socket(self.s, server_hostname=self.url.host)
 
         headers.add("Host", self.url.host)
+        request = Request("GET", self.url, "HTTP/1.1", headers)
 
-        request = f"GET {self.url.path} HTTP/1.1\r\n"
-
-        for header, value in headers.items():
-            request += f"{header}: {value}\r\n"
-
-        request += "\r\n"
-        self.s.send(request.encode("utf8"))
+        self.s.send(request.to_string().encode("utf8"))
         response = self.s.makefile("r", encoding="utf8", newline="\r\n")
         statusline = response.readline()
         version, status, explanation = statusline.split(" ", 2)

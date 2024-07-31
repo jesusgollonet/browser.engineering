@@ -52,3 +52,19 @@ def test_ch1_ex12_file_urls():
     response = net.request(None)
 
     assert "Raw content" in response
+
+
+""" 
+1-3 data. Yet another scheme is data, which allows inlining HTML content
+into the URL itself. Try navigating to data:text/html,Hello world! in a real
+browser to see what happens. Add support for this scheme to your browser. The
+data scheme is especially convenient for making tests without having to put
+them in separate files.  
+"""
+
+
+def test_ch1_ex13_data_urls():
+    url = URL.parse("data:text/html,Hello world!")
+    net = Net(url)
+    response = net.request(None)
+    assert "Hello world!" in response

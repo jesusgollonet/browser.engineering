@@ -51,7 +51,7 @@ def test_ch1_ex12_file_urls():
         "file:///Users/jgb/Learn/recurse.com/browser.engineering/mock/dummy.txt"
     )
     net = Net(url)
-    response = net.request(None)
+    response, _ = net.request(None)
 
     assert "Raw content" in response
 
@@ -68,7 +68,7 @@ them in separate files.
 def test_ch1_ex13_data_urls():
     url = URL.parse("data:text/html,Hello world!")
     net = Net(url)
-    response = net.request(None)
+    response, _ = net.request(None)
     assert "Hello world!" in response
 
 
@@ -121,4 +121,39 @@ def test_ch1_ex15_view_source():
     assert url_str == "http://example.org"
     assert view_source is False
 
-    # view-source should be removed from the URL by load
+
+""" 
+1-6 Keep-alive. Implement Exercise 1-1; however, do not send the
+Connection: close header. Instead, when reading the body from the socket, only
+read as many bytes as given in the Content-Length header and don’t close the
+socket afterward. Instead, save the socket, and if another request is made to
+the same socket reuse the same socket instead of creating a new one. This will
+speed up repeated requests to the same server, which is common.  
+"""
+
+
+def test_ch1_ex16_keep_alive():
+    url = URL.parse("http://example.org")
+    headers = RequestHeaders(
+        headers={
+            "Host": url.host,
+            "User-Agent": "browser-engineering",
+        }
+    )
+    request = Request(method="GET", uri=url, version="HTTP/1.1", headers=headers)
+    request_str = request.to_string()
+    assert "Connection: close" not in request_str
+    body, response_headers = Net(url).request(headers)
+    assert "content-length" in response_headers
+    # Convert the body to bytes if it's not already
+    # Extract charset from content-type header, defaulting to utf-8
+    content_type = response_headers.get("content-type", "utf-8")
+    charset = "utf-8"  # default
+    if "charset=" in content_type:
+        charset = content_type.split("charset=")[-1].split(";")[0].strip()
+
+    # Convert the body to bytes using the detected charset
+    if isinstance(body, str):
+        body = body.encode(charset)
+
+    assert len(body) == int(response_headers["content-length"])

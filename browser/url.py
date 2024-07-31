@@ -116,12 +116,12 @@ class Net:
         if len(path_parts) > 1:
             media_type = path_parts[:-1]
 
-        return body
+        return body, {}
 
     def __file_request(self):
         with open(self.url.path, encoding="utf-8") as f:
             read_data = f.read()
-        return read_data
+        return read_data, {}
 
     def __http_request(self, headers):
         if not self.s:
@@ -152,7 +152,7 @@ class Net:
         # we won't handle these
         assert "transfer-encoding" not in response_headers
         assert "content-encoding" not in response_headers
-        body = response.read(int(response_headers["content-length"]))
-        # s.close()
-        # TODO this is icky. we should probably extract parts of http_request into a separate function and treat the body outside
-        return body
+        body = response.read(
+            int(response_headers["content-length"])
+        )  # does response.read read the entire body?
+        return body, response_headers

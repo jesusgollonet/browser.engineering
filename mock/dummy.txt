@@ -1,5 +1,3 @@
-Hello
-HTML
-not
-<test>holla</test>
-&lt;test&gt;holla&lt;/test&gt;
+Raw content
+<div>Div content</div>
+&lt;test&gt;Source content&lt;/test&gt;

@@ -1,4 +1,4 @@
-from browser.url import URL, Net
+from browser.url import URL, Net, RequestHeaders
 
 
 def load(url_str):
@@ -8,8 +8,11 @@ def load(url_str):
         view_source = True
 
     url = URL.parse(url_str)
+    headers = RequestHeaders(headers={})
+    headers.add("User-Agent", "browser-engineering")
+
     net = Net(url)
-    body = net.request()
+    body = net.request(headers=headers)
     show(body, view_source)
 
 

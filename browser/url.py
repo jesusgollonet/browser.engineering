@@ -40,18 +40,73 @@ class URL:
         return URL(scheme, host, port, path)
 
 
+@dataclass
+class RequestHeaders:
+    headers: dict[str, str]
+
+    def add(self, header: str, value: str):
+        self.headers[header] = value
+
+    def remove(self, header: str):
+        del self.headers[header]
+
+    def get(self, header: str):
+        return self.headers[header]
+
+    def __iter__(self):
+        return iter(self.headers)
+
+    def __len__(self):
+        return len(self.headers)
+
+    def __getitem__(self, header: str):
+        return self.headers[header]
+
+    def __setitem__(self, header: str, value: str):
+        self.headers[header] = value
+
+    def __delitem__(self, header: str):
+        del self.headers[header]
+
+    def __contains__(self, header: str):
+        return header in self.headers
+
+    def items(self):
+        return self.headers.items()
+
+    def __repr__(self):
+        return f"RequestHeaders({self.headers})"
+
+
+@dataclass
+class Request:
+    method: str
+    uri: str
+    version: str
+    headers: RequestHeaders
+
+    def to_string(self):
+        request_str = f"{self.method} {self.uri.path} { self.version }\r\n"
+
+        for header, value in self.headers.items():
+            request_str += f"{header}: {value}\r\n"
+
+        request_str += "\r\n"
+        return request_str
+
+
 class Net:
     def __init__(self, url):
         self.url = url
         self.s = None
 
-    def request(self):
+    def request(self, headers: RequestHeaders | None):
         if self.url.scheme == "data":
             return self.__data_request()
         elif self.url.scheme == "file":
             return self.__file_request()
         else:
-            return self.__http_request()
+            return self.__http_request(headers)
 
     def __data_request(self):
         path_parts = self.url.path.split(";", -1)
@@ -67,7 +122,7 @@ class Net:
             read_data = f.read()
         return read_data
 
-    def __http_request(self):
+    def __http_request(self, headers):
         if not self.s:
             self.s = socket.socket(
                 family=socket.AF_INET, type=socket.SOCK_STREAM, proto=socket.IPPROTO_TCP
@@ -77,19 +132,10 @@ class Net:
             ctx = ssl.create_default_context()
             self.s = ctx.wrap_socket(self.s, server_hostname=self.url.host)
 
-        headers = {
-            "Host": self.url.host,
-            # "Connection": "close",
-            "User-Agent": "jgb",
-        }
+        headers.add("Host", self.url.host)
+        request = Request("GET", self.url, "HTTP/1.1", headers)
 
-        request = f"GET {self.url.path} HTTP/1.1\r\n"
-
-        for header, value in headers.items():
-            request += f"{header}: {value}\r\n"
-
-        request += "\r\n"
-        self.s.send(request.encode("utf8"))
+        self.s.send(request.to_string().encode("utf8"))
         response = self.s.makefile("r", encoding="utf8", newline="\r\n")
         statusline = response.readline()
         version, status, explanation = statusline.split(" ", 2)

@@ -5,18 +5,26 @@ Also add a User-Agent header. Its value can be whatever you want—it identifies
 your browser to the host. Make it easy to add further headers in the future.
 """
 
-from browser.url import URL, Net, RequestHeaders
+from browser.url import URL, RequestHeaders, Request
 
 
-def test_ch1_ex11_():
+def test_ch1_ex11():
     url = URL.parse("http://example.com")
-    # net = Net(url)
-    # headers = RequestHeaders(headers={})
-    # headers.add("User-Agent", "browser-engineering")
-    # body = net.request(headers=headers)
-    # test that the request function sends the Connection header
-    # test that http 1.1 is set
-    # test that the Connection header is set to close
-    # test that the User-Agent header is set
+    headers = RequestHeaders(
+        headers={
+            "Host": url.host,
+            "Connection": "close",
+            "User-Agent": "browser-engineering",
+        }
+    )
+    request = Request(method="GET", uri=url, version="HTTP/1.1", headers=headers)
+    request_str = request.to_string()
+    assert "Connection: close" in request_str
+    assert "User-Agent: browser-engineering" in request_str
+    assert "HTTP/1.1" in request_str
+
     # test that the headers can be easily added
+    headers.add("Accept", "text/html")
+    request_str = request.to_string()
+    assert "Accept: text/html" in request_str
     return None

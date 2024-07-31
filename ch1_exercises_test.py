@@ -1,4 +1,5 @@
 from browser.url import URL, RequestHeaders, Request, Net
+from browser.browser import load, parse
 
 """
 1-1 HTTP/1.1. Along with Host, send the Connection header in the request
@@ -68,3 +69,18 @@ def test_ch1_ex13_data_urls():
     net = Net(url)
     response = net.request(None)
     assert "Hello world!" in response
+
+
+""" 
+1-4 Entities. Implement support for the less-than (&lt;) and greater-than
+(&gt;) entities. These should be printed as < and >, respectively. For example,
+if the HTML response was &lt;div&gt;, the show method of your browser should
+print <div>. Entities allow web pages to include these special characters
+without the browser interpreting them as tags.  
+"""
+
+
+def test_ch1_ex14_entities():
+    raw_body = "&lt;div&gt;"
+    body = parse(raw_body)
+    assert "<div>" in body

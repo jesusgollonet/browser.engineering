@@ -12,11 +12,12 @@ def load(url_str):
     headers.add("User-Agent", "browser-engineering")
 
     net = Net(url)
-    body = net.request(headers=headers)
-    show(body, view_source)
+    raw_body = net.request(headers=headers)
+    body = parse(raw_body, view_source)
+    print(body)
 
 
-def show(body, view_source=False):
+def parse(body, view_source=False):
     if view_source:
         body = body.replace("<", "&lt;").replace(">", "&gt;")
     in_tag = False
@@ -30,4 +31,4 @@ def show(body, view_source=False):
             output += c
 
     output = output.replace("&lt;", "<").replace("&gt;", ">")
-    print(output)
+    return output

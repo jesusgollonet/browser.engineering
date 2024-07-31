@@ -84,3 +84,23 @@ def test_ch1_ex14_entities():
     raw_body = "&lt;div&gt;"
     body = parse(raw_body)
     assert "<div>" in body
+
+
+"""
+1-5 view-source. Add support for the view-source scheme; navigating to
+view-source:http://example.org/ should show the HTML source instead of the
+rendered page. Add support for this scheme. Your browser should print the
+entire HTML file as if it was text. You’ll want to have also implemented
+Exercise 1-4.1-5 view-source. Add support for the view-source scheme;
+navigating to view-source:http://example.org/ should show the HTML source
+instead of the rendered page. Add support for this scheme. Your browser should
+print the entire HTML file as if it was text. You’ll want to have also
+implemented Exercise 1-4.
+"""
+
+
+def test_ch1_ex15_view_source():
+    url = URL.parse("view-source:http://example.org")
+    net = Net(url)
+    response = net.request(None)
+    assert "<html>" in response

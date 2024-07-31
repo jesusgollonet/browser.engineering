@@ -132,6 +132,8 @@ class Net:
             ctx = ssl.create_default_context()
             self.s = ctx.wrap_socket(self.s, server_hostname=self.url.host)
 
+        if not headers:
+            headers = RequestHeaders(headers={})
         headers.add("Host", self.url.host)
         request = Request("GET", self.url, "HTTP/1.1", headers)
 

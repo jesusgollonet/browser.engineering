@@ -1,5 +1,5 @@
-map ,u :w\|!python3 main.py https://example.org/index.html<CR>
+map ,u :w\|!python3 main.py http://browser.engineering/http.html<CR>
 map ,d :w\|!python3 main.py "data:text/html;charset=US-ASCII;hello,"<CR>
 map ,f :w\|!python3 main.py file:///Users/jgb/Learn/recurse.com/browser.engineering/mock/dummy.txt<CR>
 map ,v :w\|!python3 main.py view-source:https://example.org/index.html<CR>
-map ,t :w\|!pytest<CR>
+map ,t :w\|!pytest -s --timeout=10<CR>

@@ -9,9 +9,9 @@ def load(url_str):
     headers.add("User-Agent", "browser-engineering")
 
     net = Net(url)
-    raw_body, response_headers = net.request(headers=headers)
-    body = parse(raw_body, view_source)
-    print(body, response_headers)
+    response = net.request(headers=headers)
+    body = parse(response.body, view_source)
+    print(body, response.headers)
 
 
 def strip_view_source(url_str):

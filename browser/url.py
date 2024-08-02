@@ -96,6 +96,14 @@ class Request:
         return request_str
 
 
+@dataclass
+class Response:
+    version: str
+    status: str
+    headers: dict[str, str]
+    body: str
+
+
 class Net:
     def __init__(self, url):
         self.url = url
@@ -124,18 +132,21 @@ class Net:
         return read_data, {}
 
     def __http_request(self, headers):
-        if not self.s:
+        if not self.s or self.s.fileno() == -1:
             self.s = socket.socket(
                 family=socket.AF_INET, type=socket.SOCK_STREAM, proto=socket.IPPROTO_TCP
             )
-        self.s.connect((self.url.host, self.url.port))
+            self.s.connect((self.url.host, self.url.port))
+
         if self.url.scheme == "https":
             ctx = ssl.create_default_context()
             self.s = ctx.wrap_socket(self.s, server_hostname=self.url.host)
 
         if not headers:
             headers = RequestHeaders(headers={})
+
         headers.add("Host", self.url.host)
+        headers.add("Connection", "close")
         request = Request("GET", self.url, "HTTP/1.1", headers)
 
         self.s.send(request.to_string().encode("utf8"))
@@ -149,10 +160,19 @@ class Net:
                 break
             header, value = line.split(":", 1)
             response_headers[header.casefold()] = value.strip()
+
+        if "content-length" in response_headers:
+            body = response.read(int(response_headers["content-length"]))
+        else:
+            body = response.read()  # does response.read read the entire body
+
+        parsed_response = Response(version, status, response_headers, body)
+
+        if status in ["301", "302"]:
+            location = response_headers["location"]
+            self.url = URL.parse(location)
+            return self.__http_request(headers)
         # we won't handle these
-        assert "transfer-encoding" not in response_headers
-        assert "content-encoding" not in response_headers
-        body = response.read(
-            int(response_headers["content-length"])
-        )  # does response.read read the entire body?
-        return body, response_headers
+        assert "transfer-encoding" not in parsed_response.headers
+        assert "content-encoding" not in parsed_response.headers
+        return parsed_response

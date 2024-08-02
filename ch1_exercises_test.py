@@ -1,4 +1,4 @@
-from browser.url import URL, RequestHeaders, Request, Net
+from browser.url import URL, RequestHeaders, Request, Net, Response
 from browser.browser import load, parse, strip_view_source
 
 
@@ -143,17 +143,77 @@ def test_ch1_ex16_keep_alive():
     request = Request(method="GET", uri=url, version="HTTP/1.1", headers=headers)
     request_str = request.to_string()
     assert "Connection: close" not in request_str
-    body, response_headers = Net(url).request(headers)
-    assert "content-length" in response_headers
+    response = Net(url).request(headers)
+    assert "content-length" in response.headers
     # Convert the body to bytes if it's not already
     # Extract charset from content-type header, defaulting to utf-8
-    content_type = response_headers.get("content-type", "utf-8")
+    content_type = response.headers.get("content-type")
     charset = "utf-8"  # default
     if "charset=" in content_type:
         charset = content_type.split("charset=")[-1].split(";")[0].strip()
 
     # Convert the body to bytes using the detected charset
-    if isinstance(body, str):
-        body = body.encode(charset)
+    if isinstance(response.body, str):
+        body = response.body.encode(charset)
 
-    assert len(body) == int(response_headers["content-length"])
+    assert len(body) == int(response.headers["content-length"])
+
+
+""" 1-7 Redirects. Error codes in the 300 range request a redirect. When your
+browser encounters one, it should make a new request to the URL given in the
+Location header. Sometimes the Location header is a full URL, but sometimes it
+skips the host and scheme and just starts with a / (meaning the same host and
+scheme as the original request). The new URL might itself be a redirect, so
+make sure to handle that case. You don’t, however, want to get stuck in a
+redirect loop, so make sure to limit how many redirects your browser can follow
+in a row. You can test this with the URL http://browser.engineering/redirect,
+which redirects back to this page, and its /redirect2 and /redirect3 cousins
+which do more complicated redirect chains.
+"""
+
+
+def test_ex17_redirects():
+    url = URL.parse("http://browser.engineering/http.html")
+    net = Net(url)
+
+    headers = RequestHeaders(headers={})
+    headers.add("User-Agent", "browser-engineering")
+    response = net.request(headers)
+
+    print(response.status)
+    assert response.status == "200"
+    return None
+
+
+""""
+1-8 Caching. Typically, the same images, styles, and scripts are used on
+multiple pages; downloading them repeatedly is a waste. It’s generally valid to
+cache any HTTP response, as long as it was requested with GET and received a
+200 response.Some other status codes like 301 and 404 can also be cached.
+Implement a cache in your browser and test it by requesting the same file
+multiple times. Servers control caches using the Cache-Control header. Add
+support for this header, specifically for the no-store and max-age values. If
+the Cache-Control header contains any value other than these two, it’s best not
+to cache the response.
+"""
+
+
+def test_ex18_caching():
+    return None
+
+
+"""
+1-9 Compression. Add support for HTTP compression, in which the browser informs
+the server that compressed data is acceptable. Your browser must send the
+Accept-Encoding header with the value gzip. If the server supports compression,
+its response will have a Content-Encoding header with value gzip. The body is
+then compressed. Add support for this case. To decompress the data, you can use
+the decompress method in the gzip module. GZip data is not utf8-encoded, so
+pass "rb" to makefile to work with raw bytes instead. Most web servers send
+compressed data in a Transfer-Encoding called chunked. You’ll need to add
+support for that, too.
+"""
+
+
+def test_ex19_compression():
+    return None
